@@ -7,15 +7,16 @@ using System.Threading.Tasks;
 
 namespace Shared.Events
 {
-    public class OrderCreatedEvent
+    public class StockReservedEvent
     {
-        public Guid OrderID { get; set; }
         public Guid BuyerID { get; set; }
+
+        public Guid OrderID { get; set; }
+
         public decimal TotalPrice { get; set; }
+    
 
-        public List<OrderItemMessages> OrderItemMessages { get; set; }
-
-
+        public List<OrderItemMessages> OrderItemMessage { get; set; }
 
     }
 }

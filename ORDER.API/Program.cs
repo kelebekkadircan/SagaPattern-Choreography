@@ -4,6 +4,7 @@ using ORDER.API.Models;
 using ORDER.API.Models.Context;
 using ORDER.API.ViewModels;
 using ORDER.API.Enums;
+using Shared.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +36,7 @@ app.UseSwaggerUI();
 
 
 
-app.MapPost("/create-order", async (CreateOrderVM createOrder , OrderAPIDbContext _context) =>
+app.MapPost("/create-order", async (CreateOrderVM createOrder , OrderAPIDbContext _context,IPublishEndpoint publishEndpoint) =>
 {
     Order order = new()
     {
@@ -56,6 +57,24 @@ app.MapPost("/create-order", async (CreateOrderVM createOrder , OrderAPIDbContex
 
     await _context.Orders.AddAsync(order);
     await _context.SaveChangesAsync();
+
+    OrderCreatedEvent orderCreatedEvent = new()
+    {
+
+        BuyerID = order.BuyerID,
+        OrderID = order.OrderID,
+        TotalPrice = order.TotalPrice,
+        OrderItemMessages = order.OrderItems.Select(oi => new Shared.Messages.OrderItemMessages()
+        {
+            Count = oi.Count,
+            Price = oi.Price,
+            ProductID = oi.ProductID,
+        }).ToList()
+    };
+
+    await publishEndpoint.Publish(orderCreatedEvent);
+
+
 });
 
 
